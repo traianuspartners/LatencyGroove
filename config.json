@@ -1,6 +1,6 @@
 {
-  "scheduling_frequency_seconds": 600,
-  "number_of_checks": 10,
-  "api_endpoint": "https://api.bybit.com/v5/market/time",
-  "enable_network_diagnostics": true
+    "scheduling_frequency_seconds": 60,
+    "number_of_checks": 5,
+    "api_endpoint": "https://api.bybit.com/v5/market/time",
+    "enable_network_diagnostics": true
 }

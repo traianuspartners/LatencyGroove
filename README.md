@@ -1,21 +1,51 @@
-# LatencyGroove
-Script to check the latency of trading bot sending API requests to exchange.
 
-📊 Overview
-This script is your latency watchdog 🐾
+# Latency Check Script for Bybit API
 
-It fetches configuration settings from config.json, such as how often to schedule checks (scheduling_frequency_seconds), how many checks to run concurrently (number_of_checks), and which API endpoint to put to the test (api_endpoint).
+This script performs latency checks against the Bybit API, providing insights into network performance and diagnostics. It utilizes asynchronous requests to simulate concurrent operations, akin to a high-frequency trading (HFT) bot's workload.
 
-It's a speedy little fella, running those latency checks in parallel using a thread pool 🚀, mimicking the lightning-fast operations of an HFT bot.
+## Features
 
-Once it's done its rounds, it doesn't just sit there twiddling its thumbs. Oh no! It crunches the numbers and logs fancy stats like average, median, and the 95th percentile of the latencies.
+- Asynchronous API requests to measure latency
+- Network diagnostics including ping, traceroute, and MTR
+- Statistical analysis of latency (average, median, 95th percentile)
+- User-friendly console output with color-coded messages and tabular data presentation
 
-And guess what? It's also got a knack for handling errors 🛠️. If any requests fail, it makes a note of it and logs the details to a file.
+## Requirements
 
-But wait, there's more! It's not a one-time deal. Nope, it's in it for the long haul. The whole process loops at the frequency specified in the config file, tirelessly monitoring and logging latency over time.
+Ensure you have Python 3.7+ installed on your system. This script relies on several third-party libraries listed in `requirements.txt`.
 
-📝 Note
-Before you kick things off, make sure you've got the right gear installed. 
-First, ensure you have aiohttp installed for asynchronous HTTP requests (pip install aiohttp) and, if necessary, a tool like pythonping for ping operations in Python (pip install pythonping).
-Just run 'pip install numpy requests' to make sure you've got numpy and requests ready to roll 🛠️. 
-And hey, feel free to tinker with 'config.json' to tailor the setup to your specific needs or switch up the API endpoint for different kinds of latency tests.
+## Installation
+
+1. Clone this repository or download the script to your local machine.
+2. Install the required Python libraries:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Configuration
+
+Modify the `config.json` file to set the API endpoint, the number of checks, scheduling frequency, and whether to enable network diagnostics.
+
+Example `config.json`:
+
+```json
+{
+    "scheduling_frequency_seconds": 600,
+    "number_of_checks": 10,
+    "api_endpoint": "https://api.bybit.com/v2/public/time",
+    "enable_network_diagnostics": true
+}
+```
+
+## Usage
+
+Run the script with Python:
+
+```bash
+python watchdog.py
+```
+
+## License
+
+This script is provided "as is", without warranty of any kind. Use it at your own risk.

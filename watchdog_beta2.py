@@ -6,6 +6,8 @@ import numpy as np
 from prettytable import PrettyTable
 from termcolor import colored
 from urllib.parse import urlparse
+import subprocess
+import re
 import logging
 
 # Configurazione del logging

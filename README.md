@@ -3,6 +3,13 @@
 
 This script performs latency checks against the Bybit API, providing insights into network performance and diagnostics. It utilizes asynchronous requests to simulate concurrent operations, akin to a high-frequency trading (HFT) bot's workload.
 
+## 📊 Overview
+
+This script is your latency watchdog  🐾
+It's a speedy little fella, running those latency checks in parallel using a thread pool 🚀, mimicking the lightning-fast operations of an HFT bot.
+Once it's done its rounds, it doesn't just sit there twiddling its thumbs. Oh no! It crunches the numbers and logs fancy stats like average, median, and the 95th percentile of the latencies.
+And guess what? It's also got a knack for handling errors 🛠️. If any requests fail, it makes a note of it and logs the details to a file.
+
 ## Features
 
 - Asynchronous API requests to measure latency

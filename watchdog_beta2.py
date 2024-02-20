@@ -101,15 +101,6 @@ def calculate_and_print_statistics(results):
             # Log the full precision ns values
             logging.info(f"{label}: Average = {avg_ns} ns, Median = {median_ns} ns, 95th Percentile = {percentile_95_ns} ns")
 
-async def schedule_checks_async(config):
-    print_watchdog_logo()
-    while True:
-        print(colored("Starting scheduled latency checks...", "blue"))
-        results = await perform_latency_checks_async(config)
-        calculate_and_print_statistics(results)
-        print(colored(f"Waiting {config['scheduling_frequency_seconds']} seconds before the next round of checks...", "magenta"))
-        await asyncio.sleep(config['scheduling_frequency_seconds'])
-
 def run_network_diagnostics(target):
     parsed_url = urlparse(target)
     domain = parsed_url.netloc
@@ -153,6 +144,15 @@ def run_network_diagnostics(target):
     if ping_summary_ms:
         summary_table.add_row(["Ping (avg ms)", ping_summary_ms])
     print(colored(summary_table, "green"))
-  
+
+async def schedule_checks_async(config):
+    print_watchdog_logo()
+    while True:
+        print(colored("Starting scheduled latency checks...", "blue"))
+        results = await perform_latency_checks_async(config)
+        calculate_and_print_statistics(results)
+        print(colored(f"Waiting {config['scheduling_frequency_seconds']} seconds before the next round of checks...", "magenta"))
+        await asyncio.sleep(config['scheduling_frequency_seconds'])
+      
 if __name__ == '__main__':
     asyncio.run(schedule_checks_async(load_config()))

@@ -146,13 +146,20 @@ def run_network_diagnostics(target):
     print(colored(summary_table, "green"))
 
 async def schedule_checks_async(config):
-    print_watchdog_logo()
-    while True:
+        while True:
         print(colored("Starting scheduled latency checks...", "blue"))
         results = await perform_latency_checks_async(config)
         calculate_and_print_statistics(results)
+        
+        # Now call the network diagnostics function
+        # Assuming the 'api_endpoint' from the config can be used as the target for diagnostics
+        api_url = config.get('api_endpoint', '')
+        parsed_url = urlparse(api_url)
+        domain = parsed_url.netloc if parsed_url.netloc else 'api.bybit.com'  # Fallback domain if not parseable
+        run_network_diagnostics(domain)
+        
         print(colored(f"Waiting {config['scheduling_frequency_seconds']} seconds before the next round of checks...", "magenta"))
         await asyncio.sleep(config['scheduling_frequency_seconds'])
-      
+
 if __name__ == '__main__':
     asyncio.run(schedule_checks_async(load_config()))

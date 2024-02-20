@@ -16,5 +16,6 @@ But wait, there's more! It's not a one-time deal. Nope, it's in it for the long 
 
 📝 Note
 Before you kick things off, make sure you've got the right gear installed. 
+First, ensure you have aiohttp installed for asynchronous HTTP requests (pip install aiohttp) and, if necessary, a tool like pythonping for ping operations in Python (pip install pythonping).
 Just run 'pip install numpy requests' to make sure you've got numpy and requests ready to roll 🛠️. 
 And hey, feel free to tinker with 'config.json' to tailor the setup to your specific needs or switch up the API endpoint for different kinds of latency tests.

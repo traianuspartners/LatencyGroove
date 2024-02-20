@@ -5,10 +5,14 @@ import json
 import numpy as np
 from prettytable import PrettyTable
 from termcolor import colored
+from urllib.parse import urlparse
+import subprocess
+import re
 import logging
 
-# Configure detailed logging
-logging.basicConfig(filename='latency_checks_detailed.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+# Configure detailed logging at the beginning
+logging.basicConfig(filename='latency_checks_detailed.log', level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 def print_watchdog_logo():
     logging.debug("Printing WatchDog logo")
@@ -27,49 +31,73 @@ def print_watchdog_logo():
                                                                                $$$$$$/ 
     '''
     print(colored(logo, 'green'))
+    pass  # Placeholder for the actual function
+
+def load_config():
+    logging.debug("Attempting to load configuration from config.json")
+    try:
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+        logging.debug("Configuration loaded successfully")
+    except Exception as e:
+        logging.error(f"Failed to load configuration: {e}")
+        raise
+    return config
 
 async def fetch_server_time(session, url):
     logging.debug(f"Fetching server time from {url}")
-    async with session.get(url) as response:
-        response_json = await response.json()
-        if 'result' in response_json and 'timeNano' in response_json['result']:
-            server_time_nano = float(response_json['result']['timeNano'])
-            logging.debug(f"Server time (nano) fetched: {server_time_nano}")
-            return server_time_nano
-        else:
-            logging.error("Key 'timeNano' not found in the response.")
-            return None
+    try:
+        async with session.get(url) as response:
+            response_json = await response.json()
+            if 'result' in response_json and 'timeNano' in response_json['result']:
+                server_time_nano = float(response_json['result']['timeNano'])
+                logging.debug(f"Server time (nano) fetched: {server_time_nano}")
+                return server_time_nano
+            else:
+                logging.error("Key 'timeNano' not found in the response.")
+                return None
+    except Exception as e:
+        logging.error(f"Error fetching server time: {e}")
+        return None
 
 async def measure_latency(session, url):
     logging.debug("Starting latency measurement")
-    local_start_time_ns = datetime.utcnow().timestamp() * 1e9
-    server_time_ns = await fetch_server_time(session, url)
-    local_finish_time_ns = datetime.utcnow().timestamp() * 1e9
+    try:
+        local_start_time_ns = datetime.utcnow().timestamp() * 1e9
+        server_time_ns = await fetch_server_time(session, url)
+        local_finish_time_ns = datetime.utcnow().timestamp() * 1e9
 
-    if server_time_ns:
-        latency_results = {
-            "round_trip_time_ns": local_finish_time_ns - local_start_time_ns,
-            "server_to_exchange_ns": server_time_ns - local_start_time_ns,
-            "exchange_to_server_ns": local_finish_time_ns - server_time_ns
-        }
-        logging.debug(f"Latency measurement results: {latency_results}")
-        return latency_results
-    logging.error("Failed to fetch server time for latency measurement")
-    return None
+        if server_time_ns:
+            results = {
+                "round_trip_time_ns": local_finish_time_ns - local_start_time_ns,
+                "server_to_exchange_ns": server_time_ns - local_start_time_ns,
+                "exchange_to_server_ns": local_finish_time_ns - server_time_ns
+            }
+            logging.debug(f"Latency measurement results: {results}")
+            return results
+        logging.error("Server time not fetched; latency measurement failed.")
+        return None
+    except Exception as e:
+        logging.error(f"Error during latency measurement: {e}")
+        return None
 
 async def perform_latency_checks_async(config):
     logging.debug("Performing latency checks")
-    async with aiohttp.ClientSession() as session:
-        tasks = [measure_latency(session, config['api_endpoint']) for _ in range(config['number_of_checks'])]
-        results = await asyncio.gather(*tasks)
-        valid_results = [result for result in results if result]
-        logging.debug("Latency checks completed")
-        return valid_results
+    try:
+        async with aiohttp.ClientSession() as session:
+            tasks = [measure_latency(session, config['api_endpoint']) for _ in range(config['number_of_checks'])]
+            results = await asyncio.gather(*tasks)
+            valid_results = [result for result in results if result]
+            logging.debug(f"Completed latency checks with {len(valid_results)} valid results")
+            return valid_results
+    except Exception as e:
+        logging.error(f"Error performing latency checks: {e}")
+        return []
 
 def calculate_and_print_statistics(results):
-    logging.debug("Calculating statistics for latency measurements")
+    logging.debug("Calculating and displaying statistics for latency measurements")
     if not results:
-        logging.info("No latency data to display.")
+        logging.info("No valid latency data to display.")
         return
     
     round_trip_times_ms = [result['round_trip_time_ns'] / 1e6 for result in results]
@@ -88,19 +116,15 @@ def calculate_and_print_statistics(results):
     
     print(colored(table, "yellow"))
 
-def load_config():
-    logging.debug("Loading configuration from config.json")
-    with open('config.json', 'r') as f:
-        config = json.load(f)
-    logging.debug(f"Configuration loaded: {config}")
-    return config
-
 async def main():
-    logging.info("Starting latency check script")
-    config = load_config()
-    results = await perform_latency_checks_async(config)
-    calculate_and_print_statistics(results)
-    logging.info("Latency check script completed")
+    logging.info("Starting the latency check script")
+    try:
+        config = load_config()
+        results = await perform_latency_checks_async(config)
+        calculate_and_print_statistics(results)
+    except Exception as e:
+        logging.error(f"Unhandled exception in main: {e}")
+    logging.info("Latency check script execution completed")
 
 if __name__ == '__main__':
     asyncio.run(main())

@@ -110,5 +110,49 @@ async def schedule_checks_async(config):
         print(colored(f"Waiting {config['scheduling_frequency_seconds']} seconds before the next round of checks...", "magenta"))
         await asyncio.sleep(config['scheduling_frequency_seconds'])
 
+def run_network_diagnostics(target):
+    parsed_url = urlparse(target)
+    domain = parsed_url.netloc
+    print(colored("Running network diagnostics...", "yellow"))
+
+    diagnostics = {
+        "ping": ["ping", "-c", "4", domain],
+        "traceroute": ["traceroute", domain],
+        "mtr": ["mtr", "--report", "--report-cycles", "1", domain]
+    }
+
+    tests_run = 0
+    tests_passed = 0
+    ping_summary_ms = None
+
+    for tool, command in diagnostics.items():
+        try:
+            print(colored(f"Executing {tool}...", "cyan"))
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+            logging.info(f"{tool.upper()} Result: {result.stdout}")
+            if result.returncode == 0:
+                tests_passed += 1
+                if tool == "ping":
+                    # Extract the average ping time in ms
+                    match = re.search(r'avg = (\d+.\d+)/', result.stdout)
+                    if match:
+                        ping_summary_ms = match.group(1)
+            tests_run += 1
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Error running {tool}: {e}\n{e.stderr}")
+
+    # Summary for UI
+    summary_status = "All tests passed" if tests_run == tests_passed else "Some tests failed"
+
+    # Print summary
+    summary_table = PrettyTable()
+    summary_table.field_names = ["Metric", "Value"]
+    summary_table.add_row(["Tests Executed", tests_run])
+    summary_table.add_row(["Tests Passed", tests_passed])
+    summary_table.add_row(["Summary Status", summary_status])
+    if ping_summary_ms:
+        summary_table.add_row(["Ping (avg ms)", ping_summary_ms])
+    print(colored(summary_table, "green"))
+  
 if __name__ == '__main__':
     asyncio.run(schedule_checks_async(load_config()))

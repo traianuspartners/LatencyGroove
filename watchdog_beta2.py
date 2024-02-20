@@ -66,17 +66,38 @@ async def perform_latency_checks_async(config):
 
 def calculate_and_print_statistics(results):
     if results:
+        # Unpack the results into separate lists
         round_trip_times_ns, server_to_exchange_times_ns, exchange_to_server_times_ns = zip(*results)
+
+        # Prepare the table for display
         table = PrettyTable()
-        table.field_names = ["Metric", "Average (ns)", "Median (ns)", "95th Percentile (ns)"]
-        for label, values in zip(["Round Trip Time", "Server to Exchange", "Exchange to Server"],
-                                 [round_trip_times_ns, server_to_exchange_times_ns, exchange_to_server_times_ns]):
-            avg = np.mean(values)
-            median = np.median(values)
-            percentile_95 = np.percentile(values, 95)
-            table.add_row([label, f"{avg:.2f}", f"{median:.2f}", f"{percentile_95:.2f}"])
+        table.field_names = ["Metric", "Average", "Median", "95th Percentile"]
+
+        # Iterate over each metric to calculate statistics, convert to ms, and add to table
+        for label, values_ns in zip(["Round Trip Time", "Server to Exchange", "Exchange to Server"],
+                                    [round_trip_times_ns, server_to_exchange_times_ns, exchange_to_server_times_ns]):
+            # Convert ns to ms and calculate statistics
+            values_ms = [value / 1e6 for value in values_ns]  # Convert from ns to ms
+            avg_ms = np.mean(values_ms)
+            median_ms = np.median(values_ms)
+            percentile_95_ms = np.percentile(values_ms, 95)
+
+            # Add the row to the table, with values rounded to 2 decimal places
+            table.add_row([label, f"{avg_ms:.2f} ms", f"{median_ms:.2f} ms", f"{percentile_95_ms:.2f} ms"])
+
+        # Print the table with color
         print(colored(table, "yellow"))
-        logging.info(table.get_string())
+
+        # For logging, calculate and log the full precision ns values
+        logging.info("Detailed Latency Measurements in Nanoseconds:")
+        for label, values_ns in zip(["Round Trip Time (ns)", "Server to Exchange (ns)", "Exchange to Server (ns)"],
+                                    [round_trip_times_ns, server_to_exchange_times_ns, exchange_to_server_times_ns]):
+            avg_ns = np.mean(values_ns)
+            median_ns = np.median(values_ns)
+            percentile_95_ns = np.percentile(values_ns, 95)
+
+            # Log the full precision ns values
+            logging.info(f"{label}: Average = {avg_ns} ns, Median = {median_ns} ns, 95th Percentile = {percentile_95_ns} ns")
 
 async def schedule_checks_async(config):
     print_watchdog_logo()

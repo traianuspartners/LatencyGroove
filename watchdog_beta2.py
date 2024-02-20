@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 # Configurazione del logging
 import logging
 logging.basicConfig(filename='latency_checks.log', level=logging.INFO, 
-                    format=''%(asctime)s - %(levelname)s - %(message)s'', datefmt='%Y-%m-%d %H:%M:%S')
+                    format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
 def print_watchdog_logo():
     logo = '''

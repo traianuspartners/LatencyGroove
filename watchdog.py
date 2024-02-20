@@ -7,6 +7,8 @@ import time
 from datetime import datetime
 import concurrent.futures
 from pythonping import ping
+import subprocess
+from urllib.parse import urlparse
 
 # Configure logging
 logging.basicConfig(filename='latency_checks.log', level=logging.INFO, 
@@ -44,10 +46,21 @@ async def schedule_checks_async(config):
         await asyncio.sleep(config['scheduling_frequency_seconds'])
 
 def run_network_diagnostics(target):
-    # This is a simplified example. You might need root privileges for some operations.
-    logging.info(f"Pinging {target}...")
-    response = ping(target, count=4)
-    logging.info(f"Ping response: {response}")
+    # Estrae il dominio dall'URL completo
+    parsed_url = urlparse(target)
+    domain = parsed_url.netloc
+
+    diagnostics = {
+        "ping": ["ping", "-c", "4", domain],
+        "traceroute": ["traceroute", domain],
+        "mtr": ["mtr", "--report", "--report-cycles", "1", domain]
+    }
+    for tool, command in diagnostics.items():
+        try:
+            result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+            logging.info(f"{tool.upper()} Result: {result.stdout}")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Error running {tool}: {e}\n{e.stderr}")
 
 if __name__ == '__main__':
     config = load_config()

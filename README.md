@@ -29,6 +29,21 @@ Ensure you have Python 3.7+ installed on your system. This script relies on seve
 ```bash
 pip install -r requirements.txt
 ```
+```bash
+python3 -m pip install termcolor
+```
+```bash
+python3 -m pip install prettytable
+```
+3. Install external dependencies:
+
+```bash
+apt install traceroute
+```
+```bash
+apt install mtr
+```
+   
 
 ## Configuration
 
@@ -50,7 +65,7 @@ Example `config.json`:
 Run the script with Python:
 
 ```bash
-python watchdog.py
+python3 watchdog.py
 ```
 
 ## License
